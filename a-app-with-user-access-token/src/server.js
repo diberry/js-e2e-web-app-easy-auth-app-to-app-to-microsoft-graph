@@ -31,7 +31,7 @@ export const create = async () => {
       <p><a href="/.auth/logout">Log out</a></p>
 
       <h5>Server (2nd web app)</h5>
-      <p><a href="/get-profile">Get remote profile - you must add `remoteUrl` param to querystring</a></p>
+      <p><a href="/get-profile">Get remote profile - you must add `remoteUrl` param to querystring</a><br>/get-profile to </p>
       <hr>
       <h5>Additional resources</h5>
       <p><a href="https://developer.microsoft.com/en-us/graph/graph-explorer">Explore with the Microsoft Graph interactive explorer</a></p>
@@ -60,9 +60,11 @@ export const create = async () => {
 
     let profile;
     let accessToken;
-    let remoteUrl = req.query["remoteUrl"];
+    let remoteUrl = req.query["remoteUrl"] || process.env.REMOTE_GRAPH_URL;
 
     try {
+
+      console.log(`remoteUrl: ${remoteUrl}`);
 
       accessToken = req.headers['x-ms-token-aad-access-token'];
       if (!accessToken) return res.status(401).send('No access token found');

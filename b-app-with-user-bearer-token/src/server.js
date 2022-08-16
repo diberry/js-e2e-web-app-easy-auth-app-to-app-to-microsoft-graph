@@ -75,7 +75,6 @@ export const create = async () => {
 
       <h5>1 app</h5>
       <p><a href="/get-access-token">x-ms-token-aad-access-token</a></p>
-      <p><a href="/get-profile-access-token">x-ms-token-aad-access-token</a></p>
 
       <h5>2 apps (client)</h5>
       <p><a href="/get-remote-profile-client-app">Get remote profile</a></p>
@@ -110,70 +109,10 @@ export const create = async () => {
       return res.status(500).json(err.message);
     }
   });
-  // </routeGetProfile>
 
-  // <routeGetProfile>
-  app.get('/get-bearer-token', async (req, res) => {
+  app.get('/get-profile', async (req, res) => {
 
-    console.log("/get-bearer-token");
-
-    let profile;
-    let accessToken;
-    let bearerToken;
-
-    try {
-
-      bearerToken = req.headers['authorization'];
-      if (!bearerToken) return res.status(401).send('No bearer token found');
-      console.log(`bearerToken: ${bearerToken}`);
-
-      accessToken = bearerToken.split(' ')[1];
-      if (!accessToken) return res.status(401).send('No access token found');
-      console.log(`accessToken: ${accessToken}`);
-
-      res.json({"bearerToken": bearerToken});
-
-    } catch (err) {
-      console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(500).json(JSON.stringify(err));
-    } finally {
-      return res.status(200).json(profile);
-    }
-  });
-  // </routeGetProfile>
-
-  // <routeGetProfile>
-  // This API calls the downstream app service, 
-  // passing the user's access token as the Authorization header
-  // bearer token. This API receives the Microsoft Graph's User Profile
-  // as a JSON object.
-  app.get('/get-profile-access-token', async (req, res) => {
-
-    let profile;
-    let accessToken;
-
-    try {
-      // should have `x-ms-token-aad-access-token`
-      // insert from App Service if
-      // MS AD identity provider is configured
-      accessToken = req.headers['x-ms-token-aad-access-token'];
-      if (!accessToken) return res.status(401).send('No access token found');
-      console.log(`accessToken: ${accessToken}`);
-
-      profile = await getUsersProfile(accessToken);
-      console.log(`profile: ${JSON.stringify(profile)}`);
-      res.json(profile);
-    } catch (err) {
-      console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(500).json(err.message);
-    }
-  });
-  // </routeGetProfile>
-
-  // <routeGetProfile>
-  app.get('/get-profile-bearer-token', async (req, res) => {
-
-    console.log("/get-profile-bearer-token");
+    console.log("/get-profile");
 
     let profile;
     let accessToken;
@@ -195,69 +134,7 @@ export const create = async () => {
 
     } catch (err) {
       console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(500).json(err.message);
-    }
-  });
-
-
-
-  app.get('/get-remote-profile-client-app', async (req, res) => {
-
-    console.log("/get-remote-profile-client-app");
-
-    let profile;
-    let accessToken;
-    let remoteUrl = req.query["remoteUrl"];
-
-    try {
-
-      accessToken = req.headers['x-ms-token-aad-access-token'];
-      if (!accessToken) return res.status(401).send('No access token found');
-      console.log(`accessToken: ${accessToken}`);
-
-      const response = await fetch(remoteUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-      if (response.status >= 400) {
-        console.log(`response.status: ${response.status}`);
-        throw new Error("Bad response from server");
-      }
-      profile = await response.json();
-      res.json(profile);
-
-    } catch (err) {
-      console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(500).json(err.message);
-    }
-  });
-  app.get('/get-remote-profile-server-app', async (req, res) => {
-
-    console.log("/get-profile-bearer-token");
-
-    let profile;
-    let accessToken;
-    let bearerToken;
-
-    try {
-
-      bearerToken = req.headers['Authorization'] || req.headers['authorization'];
-      if (!bearerToken) return res.status(401).send('No bearer token found');
-      console.log(`bearerToken: ${bearerToken}`);
-
-      accessToken = bearerToken.split(' ')[1];
-      if (!accessToken) return res.status(401).send('No access token found');
-      console.log(`accessToken: ${accessToken}`);
-
-      profile = await getUsersProfile(accessToken);
-      console.log(`profile: ${JSON.stringify(profile)}`);
-      res.json(profile);
-
-    } catch (err) {
-      console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(500).json(err.message);
+      return res.status(229).send(JSON.stringify(err));
     }
   });
 
