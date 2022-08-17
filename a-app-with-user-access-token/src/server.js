@@ -10,35 +10,39 @@ import jwt_decode from 'jwt-decode';
 export const create = async () => {
   const app = express();
 
+  const homePathContent = `
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Easy auth - Microsoft Graph Profile</title>
+    </head>
+    <body>
+    <h1>Easy auth</h1>
+
+
+    <h5>Client (1st web app)</h5>
+    <p><a href="/access-token">Access token from x-ms-token-aad-access-token</a></p>
+    <p><a href="/.auth/logout">Log out</a></p>
+
+    <h5>Server (2nd web app)</h5>
+    <p><a href="/get-profile">Get remote profile</a></p>
+    <hr>
+    <h5>Additional resources</h5>
+    <p><a href="https://developer.microsoft.com/en-us/graph/graph-explorer">Explore with the Microsoft Graph interactive explorer</a></p>
+    <p><a href="https://jwt.ms/">Decode access token with JWT.ms</a></p>
+    <hr>
+    <p>${JSON.stringify(process.env, null, 4)}</p>
+    </body>
+  </html>
+  `;
+
   // <routeHome>
   // Display form and table
   app.get('/', async (req, res) => {
-    return res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Easy auth - Microsoft Graph Profile</title>
-      </head>
-      <body>
-      <h1>Easy auth</h1>
-
-
-      <h5>Client (1st web app)</h5>
-      <p><a href="/access-token">Access token from x-ms-token-aad-access-token</a></p>
-      <p><a href="/.auth/logout">Log out</a></p>
-
-      <h5>Server (2nd web app)</h5>
-      <p><a href="/get-profile">Get remote profile - you must add `remoteUrl` param to querystring</a><br>/get-profile to </p>
-      <hr>
-      <h5>Additional resources</h5>
-      <p><a href="https://developer.microsoft.com/en-us/graph/graph-explorer">Explore with the Microsoft Graph interactive explorer</a></p>
-      <p><a href="https://jwt.ms/">Decode access token with JWT.ms</a></p>
-      </body>
-    </html>
-    `);
+    return res.send(homePathContent);
   });
   // </routeHome>
 
@@ -50,9 +54,7 @@ export const create = async () => {
 
     const decoded = JSON.stringify(jwt_decode(accessToken));
 
-    const curlCommandHello = `curl https://YOUR-RESOURCE-NAME.azurewebsites.net/hello -H "Accept: application/json" -H "Authorization: Bearer ${accessToken}"`;
-    const curlCommandMe = `curl https://YOUR-RESOURCE-NAME.azurewebsites.net/me -H "Accept: application/json" -H "Authorization: Bearer ${accessToken}"`;
-    return res.send(`${accessToken}<br><br>${decoded}<br><br>${curlCommandHello}<br><br>${curlCommandMe}`);
+    return res.send(`${accessToken}<br><br>${decoded}<br><br>${JSON.stringify(process.env)}`);
   });
   // </routeInjectedToken>
 

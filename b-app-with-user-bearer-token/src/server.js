@@ -9,26 +9,62 @@ import express from 'express';
 import graph from '@microsoft/microsoft-graph-client';
 import 'isomorphic-fetch';
 
+
+import * as MSAL from '@azure/msal-node';
+async function exchangeBackendTokenForGraphToken(backendToken){
+
+  const config = {
+    auth: {
+      clientId: process.env.WEBSITE_AUTH_CLIENT_ID,
+      // how do I know where to find this value from my app registration?
+      authority: "https://login.microsoftonline.com/51397421-87d6-42c1-8bab-98305329d75c"
+    },
+    system: {
+      loggerOptions: {
+        loggerCallback(loglevel, message, containsPii) {
+          console.log(message);
+        },
+        piiLoggingEnabled: true,
+        logLevel: MSAL.LogLevel.Verbose,
+      }
+    }
+  };
+
+  const clientCredentialAuthority = new MSAL.ConfidentialClientApplication(config);
+
+  const oboRequest = {
+    oboAssertion: backEndAccessToken,
+    authority: "https://graph.microsoft.com/.default",
+    scopes: ["user.read"]
+  }
+
+  const oboResponse = await clientCredentialAuthority.acquireTokenOnBehalfOf(oboRequest);
+  const graphAccessToken = oboResponse.accessToken;
+  console.log(`graphAccessToken: ${graphAccessToken}`);
+  return graphAccessToken;
+}
+
 // Play with Microsoft Graph 
 //    https://developer.microsoft.com/en-us/graph/graph-explorer
 // Debug JWT token 
 //    https://jwt.ms/
-function getAuthenticatedClient(accessToken) {
+async function getAuthenticatedClient(backEndAccessToken) {
+
+  const graphAccessToken = await exchangeBackendTokenForGraphToken(backEndAccessToken);
+
   // Initialize Graph client
-  const client = graph.Client.init({
-    // Use the provided access token to authenticate requests
+  return graph.Client.init({
     authProvider: (done) => {
-      done(null, accessToken);
+      done(null, graphAccessToken);
     }
   });
 
-  return client;
 }
 
 // Use access token to get user's profile from Graph
 async function getUsersProfile(accessToken) {
   try {
-    const graphClient = getAuthenticatedClient(accessToken);
+    const graphClient = await getAuthenticatedClient(accessToken);
 
     const profile = await graphClient
       .api('/me')
@@ -85,6 +121,8 @@ export const create = async () => {
       <h5>Additional resources</h5>
       <p><a href="https://developer.microsoft.com/en-us/graph/graph-explorer">Explore with the Microsoft Graph interactive explorer</a></p>
       <p><a href="https://jwt.ms/">Decode access token with JWT.ms</a></p>
+      <hr>
+      <p>${JSON.stringify(process.env, null, 4)}</p>
       </body>
     </html>
     `);
@@ -102,7 +140,7 @@ export const create = async () => {
       if (!accessToken) return res.status(401).send('No access token found');
       console.log(`accessToken: ${accessToken}`);
 
-      res.json({accessToken: accessToken})
+      res.json({ accessToken: accessToken })
 
     } catch (err) {
       console.log(`err: ${JSON.stringify(err)}`);

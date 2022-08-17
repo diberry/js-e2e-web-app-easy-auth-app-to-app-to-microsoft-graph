@@ -20,6 +20,7 @@
   "homepage": "https://github.com/diberry/js-e2e-web-app-easy-auth-app-to-app-to-microsoft-graph#readme",
   "devDependencies": {},
   "dependencies": {
+    "@azure/msal-node": "^1.12.1",
     "@microsoft/microsoft-graph-client": "^3.0.2",
     "express": "^4.17.1",
     "isomorphic-fetch": "^3.0.0",
