@@ -8,63 +8,12 @@ import express from 'express';
 // Microsoft Graph dependencies
 import graph from '@microsoft/microsoft-graph-client';
 import 'isomorphic-fetch';
-
-
-import * as MSAL from '@azure/msal-node';
-async function exchangeBackendTokenForGraphToken(backendToken){
-
-  const config = {
-    auth: {
-      clientId: process.env.WEBSITE_AUTH_CLIENT_ID,
-      // how do I know where to find this value from my app registration?
-      authority: "https://login.microsoftonline.com/51397421-87d6-42c1-8bab-98305329d75c"
-    },
-    system: {
-      loggerOptions: {
-        loggerCallback(loglevel, message, containsPii) {
-          console.log(message);
-        },
-        piiLoggingEnabled: true,
-        logLevel: MSAL.LogLevel.Verbose,
-      }
-    }
-  };
-
-  const clientCredentialAuthority = new MSAL.ConfidentialClientApplication(config);
-
-  const oboRequest = {
-    oboAssertion: backEndAccessToken,
-    authority: "https://graph.microsoft.com/.default",
-    scopes: ["user.read"]
-  }
-
-  const oboResponse = await clientCredentialAuthority.acquireTokenOnBehalfOf(oboRequest);
-  const graphAccessToken = oboResponse.accessToken;
-  console.log(`graphAccessToken: ${graphAccessToken}`);
-  return graphAccessToken;
-}
-
-// Play with Microsoft Graph 
-//    https://developer.microsoft.com/en-us/graph/graph-explorer
-// Debug JWT token 
-//    https://jwt.ms/
-async function getAuthenticatedClient(backEndAccessToken) {
-
-  const graphAccessToken = await exchangeBackendTokenForGraphToken(backEndAccessToken);
-
-  // Initialize Graph client
-  return graph.Client.init({
-    authProvider: (done) => {
-      done(null, graphAccessToken);
-    }
-  });
-
-}
+import { getGraphToken } from './get-graph-accesstoken';
 
 // Use access token to get user's profile from Graph
 async function getUsersProfile(accessToken) {
   try {
-    const graphClient = await getAuthenticatedClient(accessToken);
+    const graphClient = await getGraphToken(accessToken);
 
     const profile = await graphClient
       .api('/me')
