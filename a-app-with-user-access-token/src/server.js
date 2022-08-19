@@ -3,10 +3,16 @@
 // <getDependencies>
 // Express.js app server
 import express from 'express';
+import "isomorphic-fetch";
 
 // decode jwt token
 import jwt_decode from 'jwt-decode';
-
+class HTTPResponseError extends Error {
+  constructor(response, ...args) {
+    super(`HTTP Error Response: ${response.status} ${response.statusText}`, ...args);
+    this.response = response;
+  }
+}
 export const create = async () => {
   const app = express();
 
@@ -69,29 +75,31 @@ export const create = async () => {
       console.log(`remoteUrl: ${remoteUrl}`);
 
       accessToken = req.headers['x-ms-token-aad-access-token'];
-      if (!accessToken) return res.status(401).send('No access token found');
+      if (!accessToken) return res.status(400).send('No access token found');
       console.log(`accessToken: ${accessToken}`);
 
       // b-app URL with route is required
-      if (!remoteUrl) return res.status(401).send('No query string param `remoteUrl` found');
+      if (!remoteUrl) return res.status(400).send('No remoteUrl found');
 
       const response = await fetch(remoteUrl, {
+        cache: "no-store",
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`
         }
       });
-      if (response.status >= 400) {
-        console.log(`response.status: ${response.status}`);
-        res.send(`Error: ${response.status}, ${response.statusText}`);
+      if (response.ok) {
+        // response.status >= 200 && response.status < 300
+        return res.send(`Server success ${JSON.stringify(await response.json())}`);
       } else {
-      profile = await response.json();
-      res.json(profile);
+        throw new HTTPResponseError(response);
       }
+    } catch (error) {
+      console.error(error);
 
-    } catch (err) {
-      console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(500).json(err.message);
+      const errorBody = await error.response.text();
+      console.error(`Error body: ${errorBody}`);
+      return res.send(`Error: ${errorBody}`);
     }
   });
 
