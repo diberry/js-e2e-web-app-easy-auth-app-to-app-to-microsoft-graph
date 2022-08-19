@@ -4,7 +4,7 @@ const express = require('express');
 require('isomorphic-fetch');
 
 const MSAL = require('@azure/msal-node');
-const Graph = require("@microsoft/microsoft-graph-client");
+const graph = require("@microsoft/microsoft-graph-client");
 
 async function getGraphToken(backEndAccessToken){
 
@@ -183,7 +183,10 @@ const create = async () => {
 
     } catch (err) {
       console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(500).json(err);
+      return res.status(200).json({ 
+        "server_response": err,
+        "message": err.message
+    });
     }
   });
 
