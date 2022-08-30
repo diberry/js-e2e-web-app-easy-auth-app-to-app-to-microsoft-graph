@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Easy auth - Get Profile from API server</title>
+</head>
+
+<body>
+    <h2>API server - Profile</h2>
+
+    <% if (error) { %>
+
+        <h3>Error</h3>
+        <p><%= error %></p>
+
+    <% } else { %>
+
+        <h3>API Service - Microsoft Graph User Profile</h3>
+        <p><%-  JSON.stringify(profile, null, 6)
+            .replace(/\n( *)/g, function (match, p1) {
+              return '<br>' + '&nbsp;'.repeat(p1.length);
+            }); %></p>
+
+        <h3>API Service HTTP Headers</h3>
+        <p><%-  JSON.stringify(headers, null, 6)
+            .replace(/\n( *)/g, function (match, p1) {
+                return '<br>' + '&nbsp;'.repeat(p1.length);
+            }); %></p>
+
+        <h3>API Service environment variables</h3>
+        <p><%-  JSON.stringify(env, null, 6)
+            .replace(/\n( *)/g, function (match, p1) {
+                return '<br>' + '&nbsp;'.repeat(p1.length);
+            }); %></p>            
+
+        <h3>API Service bearer token</h3>
+        <p><%=  bearerToken %></p>  
+
+    <% } %>
+
+</body>
+
+</html>

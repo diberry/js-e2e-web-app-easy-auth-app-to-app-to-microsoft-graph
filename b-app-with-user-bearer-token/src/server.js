@@ -1,12 +1,13 @@
+// <getDependencies>
+// Express.js app server
+import express from 'express';
+import 'isomorphic-fetch';
+import MSAL from '@azure/msal-node';
+import graph from "@microsoft/microsoft-graph-client";
+// </getDependencies>
 
-const express = require('express');
-
-require('isomorphic-fetch');
-
-const MSAL = require('@azure/msal-node');
-const graph = require("@microsoft/microsoft-graph-client");
-
-async function getGraphToken(backEndAccessToken){
+// <getGraphToken>
+async function getGraphToken(backEndAccessToken) {
 
   const config = {
 
@@ -57,6 +58,7 @@ async function getGraphToken(backEndAccessToken){
   console.log(`graphAccessToken: ${accessToken}`);
   return accessToken;
 }
+
 function getAuthenticatedClient(accessToken) {
   // Initialize Graph client
   const client = graph.Client.init({
@@ -68,7 +70,9 @@ function getAuthenticatedClient(accessToken) {
 
   return client;
 }
+// </getGraphToken>
 
+// <getGraphProfile>
 async function getGraphProfile(accessToken) {
   try {
 
@@ -88,77 +92,15 @@ async function getGraphProfile(accessToken) {
     throw err;
   }
 }
-// </getGraph>
+// </getGraphProfile>
 
-const create = async () => {
+// <create>
+export const create = async () => {
+
+  // Create express app
   const app = express();
 
-  // <routeInjectedToken>
-  app.get('/view-injected-token', async (req, res) => {
-
-    const accessToken = req.headers['x-ms-token-aad-access-token'];
-    if (!accessToken) return res.send('No access token found');
-    console.log(`accessToken: ${accessToken}`);
-
-    return res.json(accessToken);
-  });
-  // </routeInjectedToken>
-
-  // <routeHome>
-  // Display form and table
-  app.get('/', async (req, res) => {
-    return res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Easy auth - Microsoft Graph Profile</title>
-      </head>
-      <body>
-      <h1>Easy auth</h1>
-
-
-      <h5>1 app</h5>
-      <p><a href="/get-access-token">x-ms-token-aad-access-token</a></p>
-
-      <h5>2 apps (client)</h5>
-      <p><a href="/get-remote-profile-client-app">Get remote profile</a></p>
-
-      <h5>Logout</h5>
-      <p><a href="/.auth/logout">Log out</a></p>
-      <hr>
-      <h5>Additional resources</h5>
-      <p><a href="https://developer.microsoft.com/en-us/graph/graph-explorer">Explore with the Microsoft Graph interactive explorer</a></p>
-      <p><a href="https://jwt.ms/">Decode access token with JWT.ms</a></p>
-      <hr>
-      <p>${JSON.stringify(process.env, null, 4)}</p>
-      </body>
-    </html>
-    `);
-  });
-  // </routeHome>
-
-  app.get('/get-access-token', async (req, res) => {
-    let accessToken;
-
-    try {
-      // should have `x-ms-token-aad-access-token`
-      // insert from App Service if
-      // MS AD identity provider is configured
-      accessToken = req.headers['x-ms-token-aad-access-token'];
-      if (!accessToken) return res.status(401).send('No access token found');
-      console.log(`accessToken: ${accessToken}`);
-
-      res.json({ accessToken: accessToken })
-
-    } catch (err) {
-      console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(202).json(JSON.stringify(err));
-    }
-  });
-
+  // Get Profile and return to client
   app.get('/get-profile', async (req, res) => {
 
     console.log("/get-profile");
@@ -170,27 +112,34 @@ const create = async () => {
     try {
 
       bearerToken = req.headers['Authorization'] || req.headers['authorization'];
-      if (!bearerToken) return res.status(401).json({error: 'No bearer token found'});
+      if (!bearerToken) return res.status(401).json({ error: 'No bearer token found' });
       console.log(`bearerToken: ${bearerToken}`);
 
       accessToken = bearerToken.split(' ')[1];
-      if (!accessToken) return res.status(401).json({error: 'No access token found'});
+      if (!accessToken) return res.status(401).json({ error: 'No access token found' });
       console.log(`accessToken: ${accessToken}`);
 
       profile = await getGraphProfile(accessToken);
       console.log(`profile: ${JSON.stringify(profile)}`);
-      return res.status(200).json(profile);
+      return res.status(200).json({
+        profile,
+        headers: req.headers,
+        bearerToken,
+        env: process.env,
+        error: null
+      });
 
     } catch (err) {
       console.log(`err: ${JSON.stringify(err)}`);
-      return res.status(200).json({ 
-        "server_response": err,
-        "message": err.message
-    });
+      return res.status(200).json({
+        error: {
+          "profile": "error",
+          "server_response": err,
+          "message": err.message
+        }
+      });
     }
   });
-
-  // </routeGetProfile>
 
   // instead of 404 - just return home page
   app.get('*', (req, res) => {
@@ -199,7 +148,4 @@ const create = async () => {
 
   return app;
 };
-
-module.exports = {
-  create
-}
+// </create>

@@ -1,8 +1,9 @@
-const server =require('./server.js');
+import { create } from './server.js';
 
+// DEFAULT port for App Service is 8080
 const port = process.env.WEB_PORT || 8080;
 
-server.create()
+create()
 .then(app => {
     app.listen(port, () => {
         console.log(`Server has started on port ${port}!`);

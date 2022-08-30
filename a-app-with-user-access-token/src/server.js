@@ -1,112 +1,152 @@
-// general dependencies
-
 // <getDependencies>
 // Express.js app server
 import express from 'express';
+import { refreshTokenInMiddleware, isTokenExpired } from './refreshToken.js';
+//import { access } from 'fs';
+import { HTTPResponseError } from './error.js';
 import "isomorphic-fetch";
-
-// decode jwt token
 import jwt_decode from 'jwt-decode';
-class HTTPResponseError extends Error {
-  constructor(response, ...args) {
-    super(`HTTP Error Response: ${response.status} ${response.statusText}`, ...args);
-    this.response = response;
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { sortJson } from './sortJson.js';
+import { getRemoteProfile } from './remoteProfile.js';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+// </getDependencies>
+
+// <RefreshToken>
+// Optional middleware to refresh the token if it is about to expire
+// There are otherways to refresh, this was the easiest for this sample project
+const refreshToken = async function (req, _, next) {
+
+  // Set default middleware values
+  req.tokenMiddleware = {
+    "token": "",
+    "decoded": ""
+  };
+
+  // Get token from injected headers
+  req.tokenMiddleware.token = req.headers['x-ms-token-aad-access-token'];
+  if (!req.tokenMiddleware.token) {
+    console.log(`access-token-middleware - !req.tokenMiddleware.token`);
+    return next();
   }
+
+  // Decode token
+  req.tokenMiddleware.decoded = jwt_decode(req.tokenMiddleware.token);
+
+  // Check if token is expired
+  req.tokenMiddleware.isExpired = isTokenExpired(req.tokenMiddleware.decoded.exp)
+
+  // If token is expired, refresh it
+  if (req.tokenMiddleware.isExpired.expired) {
+
+    console.log(`access-token-middleware - ${req.tokenMiddleware.isExpired.expired}`);
+
+    const refreshUrl = `https://${req.headers.host}/.auth/refresh`;
+    req.tokenMiddleware.refreshedTokenResult = await refreshTokenInMiddleware(refreshUrl, req.tokenMiddleware.token);
+
+  }
+  return next();
 }
+// </RefreshToken>
+
+// <create>
 export const create = async () => {
+
+  // Create express app
   const app = express();
 
-  const homePathContent = `
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta http-equiv="X-UA-Compatible" content="ie=edge">
-      <title>Easy auth - Microsoft Graph Profile</title>
-    </head>
-    <body>
-    <h1>Easy auth</h1>
+  // Refresh token middleware
+  app.use(refreshToken)
 
+  // set the view engine to ejs
+  app.set('view engine', 'ejs');
 
-    <h5>Client (1st web app)</h5>
-    <p><a href="/access-token">Access token from x-ms-token-aad-access-token</a></p>
-    <p><a href="/.auth/logout">Log out</a></p>
-
-    <h5>Server (2nd web app)</h5>
-    <p><a href="/get-profile">Get remote profile</a></p>
-    <hr>
-    <h5>Additional resources</h5>
-    <p><a href="https://developer.microsoft.com/en-us/graph/graph-explorer">Explore with the Microsoft Graph interactive explorer</a></p>
-    <p><a href="https://jwt.ms/">Decode access token with JWT.ms</a></p>
-    <hr>
-    <p>${JSON.stringify(process.env, null, 4)}</p>
-    </body>
-  </html>
-  `;
-
-  // <routeHome>
-  // Display form and table
-  app.get('/', async (req, res) => {
-    return res.send(homePathContent);
+  // Home page
+  app.get('/', async (_, res) => {
+    console.log("/");
+    res.render(`${__dirname}/views/home`);
   });
-  // </routeHome>
 
-  // <routeInjectedToken>
+  // Access token from injected header
   app.get('/access-token', async (req, res) => {
-
-    const accessToken = req.headers['x-ms-token-aad-access-token'];
-    if (!accessToken) return res.send('No access token found');
-
-    const decoded = JSON.stringify(jwt_decode(accessToken));
-
-    return res.send(`${accessToken}<br><br>${decoded}<br><br>${JSON.stringify(process.env)}`);
-  });
-  // </routeInjectedToken>
-
-  app.get('/get-profile', async (req, res) => {
-
-    let profile;
-    let accessToken;
-    let remoteUrl = req.query["remoteUrl"] || process.env.REMOTE_GRAPH_URL;
 
     try {
 
-      console.log(`remoteUrl: ${remoteUrl}`);
+      console.log("/access-token");
 
-      accessToken = req.headers['x-ms-token-aad-access-token'];
-      if (!accessToken) return res.status(400).send('No access token found');
-      console.log(`accessToken: ${accessToken}`);
+      // Data for rendered view
+      const dataForView = {
+        error: undefined,
+        tokenMiddleware: sortJson(req.tokenMiddleware),
+        headers: sortJson(req.headers),
+        env: sortJson(process.env)
+      };
 
-      // b-app URL with route is required
-      if (!remoteUrl) return res.status(400).send('No remoteUrl found');
+      console.log(`access-token - dataForView: ${JSON.stringify(dataForView)}`);
 
-      const response = await fetch(remoteUrl, {
-        cache: "no-store",
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-      if (response.ok) {
-        // response.status >= 200 && response.status < 300
-        return res.send(`Server success ${JSON.stringify(await response.json())}`);
-      } else {
-        throw new HTTPResponseError(response);
-      }
+      // Success - View
+      res.render(`${__dirname}/views/access-token`, dataForView)
+
     } catch (error) {
-      console.error(error);
 
-      const errorBody = await error.response.text();
-      console.error(`Error body: ${errorBody}`);
-      return res.send(`Error: ${errorBody}`);
+      // Failure - View
+      res.render(`${__dirname}/views/access-token`, { error })
+    }
+  });
+
+  // Get remote profile
+  // use access token as bearer token to API server
+  app.get('/get-profile', async (req, res) => {
+
+    try {
+
+      // Get remote URL from environment variable
+      let remoteUrl = process.env.NODE_ENV === "production"
+        ? process.env.REMOTE_GRAPH_URL
+        : "http://localhost:8081/get-profile";
+      if (!remoteUrl) {
+        return res.render(`${__dirname}/views/profile`, { error: 'Client: No remote URL found' });
+      }
+
+      // Get access token from injected header
+      let accessToken = req.headers['x-ms-token-aad-access-token'];
+      if (!accessToken) {
+        return res.render(`${__dirname}/views/profile`, { error: 'Client: No access token found' });
+      }
+
+      // Get remote profile
+      const response = await getRemoteProfile(remoteUrl, accessToken);
+      console.log(response);
+
+      const error = (response.error && Object.keys(response.error).length > 0 ) ? JSON.stringify(response.error) : "";
+
+      // Data for rendered view
+      const dataForView = {
+        error,
+        profile: sortJson(response.profile),
+        headers: sortJson(response.headers),
+        env: sortJson(response.env),
+        bearerToken: response.bearerToken,
+      };
+
+      // Success - render view
+      res.render(`${__dirname}/views/profile`, dataForView);
+
+
+    } catch (error) {
+
+      // Route-level Failure - render view
+      console.log(` Route-level Failure - render view ${error.message}`);
+      res.render(`${__dirname}/views/profile`, error.message );
     }
   });
 
   // instead of 404 - just return home page
-  app.get('*', (req, res) => {
+  app.get('*', (_, res) => {
     res.redirect('/');
   });
 
   return app;
 };
+// </create>
