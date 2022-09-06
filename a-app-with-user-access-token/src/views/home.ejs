@@ -7,25 +7,31 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Easy auth - Get Profile from API server</title>
 </head>
+<style>
+  .resources {
+    background-color: lightgray;
+  }
+</style>
 
 <body>
 
   <h1>Easy auth - Get Profile from API server</h1>
 
-  <p>1. <a href="/access-token">Access token</a> HTTP header `x-ms-token-aad-access-token`</p>
-  <p>2. <a href="/get-profile">User's profile</a> from server API</p>
-  <hr>
-  <h5>Additional resources</h5>
-  <p>Easy auth
-  <ul>
-    <li><a href="/.auth/login">Log in</a>
-    <li><a href="/.auth/logout">Log out</a>
-    <li><a href="/.auth/refresh">Refresh token</a>
-  </ul>
-  </p>
+  <p><a href="/get-profile">Get user's profile</a> from server API</p>
+  <br><br><br><br>
+  <div class="resources">
+    <p>Additional resources - Easy auth</p>
 
-  <p><a href="https://developer.microsoft.com/en-us/graph/graph-explorer">Microsoft Graph Explorer</a></p>
-  <p><a href="https://jwt.ms/">JWT.ms - decode access token</a></p>
+    <ul>
+      <li><a href="/.auth/login">Log in</a>
+      <li><a href="/.auth/logout">Log out</a>
+      <li><a href="/.auth/refresh">Refresh token</a>
+      <li><a href="/access-token">Client app: Access token, HTTP headers and environment variables</a>
+      <li><a href="https://developer.microsoft.com/en-us/graph/graph-explorer">Microsoft Graph Explorer</a>
+      <li><a href="https://jwt.ms/">JWT.ms - decode access token</a>
+    </ul>
+    </p>
+  </div>
 </body>
 
 </html>

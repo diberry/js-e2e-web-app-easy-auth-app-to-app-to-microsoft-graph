@@ -78,6 +78,7 @@ export const create = async () => {
       // Data for rendered view
       const dataForView = {
         error: undefined,
+        accessToken: req.headers['x-ms-token-aad-access-token'],
         tokenMiddleware: sortJson(req.tokenMiddleware),
         headers: sortJson(req.headers),
         env: sortJson(process.env)
