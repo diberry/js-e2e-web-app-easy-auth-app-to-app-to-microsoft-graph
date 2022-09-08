@@ -6,6 +6,21 @@ import MSAL from '@azure/msal-node';
 import graph from "@microsoft/microsoft-graph-client";
 // </getDependencies>
 
+// <getTenantId>
+function getTenantId(){
+  // process.env.WEBSITE_AUTH_OPENID_ISSUER should look something like: 
+  // https://sts.windows.net/YOUR-TENANT-ID-AS-GUID/v2.0
+  const openIdIssuer = process.env.WEBSITE_AUTH_OPENID_ISSUER;
+  console.log(openIdIssuer);
+
+  const apiBAppTenantId = openIdIssuer.replace(/https:\/\/sts\.windows\.net\/(.{1,36})\/v2\.0/gm, '$1');
+  console.log(`apiBAppTenantId = ${apiBAppTenantId}`);
+
+  return apiBAppTenantId; 
+}
+// </getTenantId>
+
+
 // <getGraphToken>
 async function getGraphToken(backEndAccessToken) {
 
@@ -21,11 +36,11 @@ async function getGraphToken(backEndAccessToken) {
       clientSecret: process.env.MICROSOFT_PROVIDER_AUTHENTICATION_SECRET,
       // how do I know where to find this value from my app registration?
       // is this the authority to Graph? 
-      // "WEBSITE_AUTH_OPENID_ISSUER": "https://sts.windows.net/51397421-87d6-42c1-8bab-98305329d75c/v2.0",
+      // "WEBSITE_AUTH_OPENID_ISSUER": "https://sts.windows.net/API-B-TENANT-ID/v2.0",
       // Who is issuer of token - should map to app registation
       // portal for AAD - Overview Endpoints - OAuth 2.0 authorization endpoint (v2)
-      // should be: https://login.microsoftonline.com/51397421-87d6-42c1-8bab-98305329d75c/oauth2/v2.0/authorize
-      authority: "https://login.microsoftonline.com/51397421-87d6-42c1-8bab-98305329d75c"
+      // should be: https://login.microsoftonline.com/API-B-TENANT-ID
+      authority: `https://login.microsoftonline.com/${getTenantId()}`
     },
     system: {
       loggerOptions: {
@@ -99,6 +114,11 @@ export const create = async () => {
 
   // Create express app
   const app = express();
+
+  // Get api tenent
+  app.get('/get-tenant', async (req, res) => {
+    res.send(`Tenant Id = ${getTenantId()}`);
+  })
 
   // Get Profile and return to client
   app.get('/get-profile', async (req, res) => {

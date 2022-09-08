@@ -103,11 +103,13 @@ export const create = async () => {
     try {
 
       // Get remote URL from environment variable
-      let remoteUrl = process.env.NODE_ENV === "production"
+      let remoteUrl = (!process.env.NODE_ENV || process.env.NODE_ENV === "production")
         ? process.env.REMOTE_GRAPH_URL
         : "http://localhost:8081/get-profile";
       if (!remoteUrl) {
         return res.render(`${__dirname}/views/profile`, { error: 'Client: No remote URL found' });
+      } else {
+        console.log(`remoteUrl = ${remoteUrl}`);
       }
 
       // Get access token from injected header
