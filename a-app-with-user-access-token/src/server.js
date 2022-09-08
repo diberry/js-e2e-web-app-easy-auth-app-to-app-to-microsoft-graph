@@ -69,11 +69,11 @@ export const create = async () => {
   });
 
   // Access token from injected header
-  app.get('/access-token', async (req, res) => {
+  app.get('/debug', async (req, res) => {
 
     try {
 
-      console.log("/access-token");
+      console.log("/debug");
 
       // Data for rendered view
       const dataForView = {
@@ -87,12 +87,12 @@ export const create = async () => {
       console.log(`access-token - dataForView: ${JSON.stringify(dataForView)}`);
 
       // Success - View
-      res.render(`${__dirname}/views/access-token`, dataForView)
+      res.render(`${__dirname}/views/debug`, dataForView)
 
     } catch (error) {
 
       // Failure - View
-      res.render(`${__dirname}/views/access-token`, { error })
+      res.render(`${__dirname}/views/debug`, { error })
     }
   });
 
@@ -104,7 +104,7 @@ export const create = async () => {
 
       // Get remote URL from environment variable
       let remoteUrl = (!process.env.NODE_ENV || process.env.NODE_ENV === "production")
-        ? process.env.REMOTE_GRAPH_URL
+        ? process.env.API_B_URL
         : "http://localhost:8081/get-profile";
       if (!remoteUrl) {
         return res.render(`${__dirname}/views/profile`, { error: 'Client: No remote URL found' });
