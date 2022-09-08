@@ -4,7 +4,7 @@ import express from 'express';
 import 'isomorphic-fetch';
 import MSAL from '@azure/msal-node';
 import graph from "@microsoft/microsoft-graph-client";
-import { sortJson } from './sortJson.js';
+import { sortJson, prettyJson } from './sortJson.js';
 // </getDependencies>
 
 // <getTenantId>
@@ -118,11 +118,11 @@ export const create = async () => {
 
   // Get root
   app.get('/debug', async (req, res) => {
-    res.json({
+    res.send(prettyJson(sortJson({
       tenantId: getTenantId(),
       headers: sortJson(req.headers),
       env: sortJson(process.env)
-    });
+    })));
   })
 
   // Get Profile and return to client
