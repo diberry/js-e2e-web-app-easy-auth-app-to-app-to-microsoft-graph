@@ -19,7 +19,7 @@ echo api app name:        $apiappname
 
 # Create Azure resources
 az group create --name $resourcegroupname --location "West Europe"
-az appservice plan create --name $appplanname --resource-group $resourcegroupname --sku FREE --is-linux
+az appservice plan create --name $appplanname --resource-group $resourcegroupname --sku B1 --is-linux
 az webapp create --resource-group $resourcegroupname --plan $appplanname --name $clientappname --runtime "node|14-lts" --deployment-local-git --query deploymentLocalGitUrl
 az webapp create --resource-group $resourcegroupname --plan $appplanname --name $apiappname --runtime "node|14-lts" --deployment-local-git --query deploymentLocalGitUrl
 
