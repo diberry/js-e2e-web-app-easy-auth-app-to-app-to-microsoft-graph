@@ -1,6 +1,9 @@
 # Delete previous random.log
 rm random.log
 
+# Set pricing tier: FREE or B1
+pricingtier=B1
+
 # Create new random.log
 random=$RANDOM
 echo "$random" > random.log
@@ -22,7 +25,7 @@ echo "Create resource group"
 az group create --name $resourcegroupname --location "West Europe"
 
 echo "Create App plan"
-az appservice plan create --name $appplanname --resource-group $resourcegroupname --sku B1 --is-linux
+az appservice plan create --name $appplanname --resource-group $resourcegroupname --sku $pricingtier --is-linux
 
 echo "Create client app"
 az webapp create --resource-group $resourcegroupname --plan $appplanname --name $clientappname --runtime "node|14-lts" 
