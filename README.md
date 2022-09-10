@@ -81,3 +81,33 @@ This sample uses 2 Azure App Service apps to demonstrate:
           .api('/me')
           .get();
           ```
+
+## Azure scripts
+
+In a web browser, use the [Azure cloud shell](https://shell.azure.com/) with the _bash_ environment to run the following scripts. The resource group and resources are prepended with a random number, which is stored in `random.log`.
+
+1. In the Azure Cloud Shell, clone this repo. 
+
+    ```bash
+    git clone https://github.com/Azure-Samples/js-e2e-web-app-easy-auth-app-to-app-to-microsoft-graph && cd js-e2e-web-app-easy-auth-app-to-app-to-microsoft-graph
+    ```
+
+1. Run the following script to create the required Azure apps. If you don't have any more free app plans left, you can change the `pricingtier` variable value to `B1` in the **azure_create_resources.sh** script before running it.
+
+    ```bash
+    bash azure_create_resources.sh
+    ```
+
+1. Create both the client and API Active Directory apps with the Microsoft identity provider - refer to documentation. You should have the Active Directory client ID for the API app before moving to the next step.
+    * API Active Directory app 
+        * api permissions are User.Read (or more restrictive would be profile)
+        * authorized client applications
+            * CLIENT's Active Directory app - you need the AD client ID and the authorized scope `api://API-AD-APP-CLIENT_ID/user_impersonation`.
+    * CLIENT Active Directory app
+        * api permissions are user-impersonation
+1. Open **azure_config_auth.sh** in the Azure cloud shell and set the value of `apiappclientid` to the API's Active Directory client ID.
+1. Configure App Service loginParameters for each app. 
+
+    ```bash
+    bash azure_config_auth.sh
+    ```
