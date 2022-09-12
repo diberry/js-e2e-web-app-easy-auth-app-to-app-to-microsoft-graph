@@ -38,6 +38,10 @@ echo "Configure API app for CORS"
 clientappurl=https://$clientappname.azurewebsites.net
 az webapp cors add --name $apiappname --resource-group $resourcegroupname --allowed-origins $clientappurl
 
+# Set logging
+az webapp log config --name $clientappname --resource-group $resourcegroupname --application-logging filesystem --web-server-logging filesystem --detailed-error-messages true --docker-container-logging filesystem --failed-request-tracing true --level verbose
+az webapp log config --name $apiappname --resource-group $resourcegroupname --application-logging filesystem --web-server-logging filesystem --detailed-error-messages true --docker-container-logging filesystem --failed-request-tracing true --level verbose
+
 # Configure apps
 echo "Configure client app for SCM_DO_BUILD_DURING_DEPLOYMENT"
 az webapp config appsettings set --name $clientappname --resource-group $resourcegroupname --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true
