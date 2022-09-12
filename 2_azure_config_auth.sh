@@ -15,7 +15,7 @@
 # loginParameters:
 # [
 #   "response_type=code id_token",
-#   "scope=openid offline profile"
+#   "scope=openid offline_access profile"
 # ]
 
 
@@ -53,7 +53,7 @@ az webapp auth set --resource-group $resourcegroupname --name $clientappname --b
 # API returns usable access token - including Graph profile
 
 apiFirstParam="response_type=code id_token"
-apiSecondParam="scope=openid offline profile"
+apiSecondParam="scope=openid offline_access profile"
 
 apiParamArrayObj=$( jq --null-input \
     --arg apiP1 "$apiFirstParam" \
