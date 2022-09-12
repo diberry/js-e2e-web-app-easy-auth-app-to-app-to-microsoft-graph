@@ -6,7 +6,7 @@
 # Client (a) 
 # loginParameters:
 # [
-#   "scope=openid offline_access api://API-B-ACTIVE-DIRECTORY-CLIENT-ID/user_impersonation",
+#   "scope=openid offline_access api://API-B-ACTIVE-DIRECTORY-CLIENT-ID/.default",
 #   "response_type=code id_token",
 #   "prompt=consent"
 # ]
@@ -35,7 +35,7 @@ apiappname=$random-api-b
 
 # Client returns usable access token
 
-firstParam="scope=openid offline_access api://$apiappclientid/user_impersonation"
+firstParam="scope=openid offline_access api://$apiappclientid/.default"
 secondParam="response_type=code id_token"
 thirdParam="prompt=consent"
 
