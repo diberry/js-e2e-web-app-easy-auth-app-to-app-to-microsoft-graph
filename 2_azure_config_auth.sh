@@ -24,7 +24,7 @@ random=$(cat "$file")
 echo $random
 
 # Active Directory client id for API app
-apiappclientid=def2178d-8540-46c5-a165-9709ac8fbbe0
+apiappclientid=YOUR-API-B-ACTIVE-DIRECTORY-REGISTRATION-CLIENT-ID
 echo $apiappclientid
 
 # Rehydrate variables
