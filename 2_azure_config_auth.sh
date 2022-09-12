@@ -1,4 +1,7 @@
 # This script adds the loginParameters property to the App Services.
+#
+# !!! You must add your API Active Directory Client Id for this script to apply the correct permissions
+#
 # This additions can be made with the Azure CLI below or with the
 # Azure resources explorer, https://resources.azure.com at URL like:
 # http://resources.azure.com/subscriptions/YOUR-SUBSCRIPTION/resourcesGroups/YOUR-RESOURCE-GROUP/providers/Microsoft.Web/sites/YOUR-APP-SERVICE-NAME/config/authsettingsV2/list
