@@ -1,6 +1,8 @@
 # This script adds the loginParameters property to the App Services.
 #
-# !!! You must add your API Active Directory Client Id for this script to apply the correct permissions
+# !!! You must add your API Active Directory Client Id for this script 'apiaad.txt'
+# For example, use this bash script to write Id to file
+# echo "PASTE-YOUR-API-AAD-ID-HERE" > apiaad.txt
 #
 # This additions can be made with the Azure CLI below or with the
 # Azure resources explorer, https://resources.azure.com at URL like:
@@ -26,8 +28,11 @@ file="random.log"
 random=$(cat "$file") 
 echo $random
 
+apifile="apiaad.txt"
+apiaadid=$(cat "$apifile")
+
 # Active Directory client id for API app
-apiappclientid=YOUR-API-B-ACTIVE-DIRECTORY-REGISTRATION-CLIENT-ID
+apiappclientid=$apiaadid
 echo $apiappclientid
 
 # Rehydrate variables

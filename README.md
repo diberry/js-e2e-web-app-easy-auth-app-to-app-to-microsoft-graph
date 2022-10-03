@@ -82,7 +82,7 @@ This sample uses 2 Azure App Service apps to demonstrate:
           .get();
           ```
 
-## Azure scripts
+## Clone sample repo
 
 In a web browser, use the [Azure cloud shell](https://shell.azure.com/) with the _bash_ environment to run the following scripts. The resource group and resources are prepended with a random number, which is stored in `random.log`.
 
@@ -92,22 +92,54 @@ In a web browser, use the [Azure cloud shell](https://shell.azure.com/) with the
     git clone https://github.com/Azure-Samples/js-e2e-web-app-easy-auth-app-to-app-to-microsoft-graph && cd js-e2e-web-app-easy-auth-app-to-app-to-microsoft-graph
     ```
 
+### Script - Create Azure resources
+
 1. Run the following script to create the required Azure apps. If you don't have any more free app plans left, you can change the `pricingtier` variable value to `B1` in the **azure_create_resources.sh** script before running it.
 
     ```bash
-    bash azure_create_resources.sh
+    bash 1_azure_create_resources.sh
     ```
 
-1. Create both the client and API Active Directory apps with the Microsoft identity provider - refer to documentation. You should have the Active Directory client ID for the API app before moving to the next step.
+### Portal - Create Azure Identity app registrations for each auth
+1. Create both the client and API Active Directory apps with the Microsoft identity provider in the Azure portal - refer to documentation. You should have the Active Directory **client ID** for the API app before moving to the next step.
     * API Active Directory app 
         * api permissions are User.Read (or more restrictive would be profile)
         * authorized client applications
             * CLIENT's Active Directory app - you need the AD client ID and the authorized scope `api://API-AD-APP-CLIENT_ID/user_impersonation`.
     * CLIENT Active Directory app
         * api permissions are user-impersonation
+
+### Script - Configure loginParameters
+
 1. Open **azure_config_auth.sh** in the Azure cloud shell and set the value of `apiappclientid` to the API's Active Directory client ID.
 1. Configure App Service loginParameters for each app. 
 
     ```bash
-    bash azure_config_auth.sh
+    bash 2_azure_config_auth.sh
     ```
+
+### Script - Apply Graph version 
+
+Not sure if this is still needed?
+
+1. Configure 
+
+    ```bash
+    bash 2a_azure_config_graph_version.sh
+    ```
+
+### Script - Deploy apps to Azure
+
+1. Execute script which creates zip files and deploy.
+
+    ```bash
+    bash 3_azure_deploy_apps.sh
+    ```
+
+## Test web app
+
+In a browser, go to client (a) app, login, and select to get the profile. 
+
+## Debugging
+
+If you don't get a profile, both the client and api apps have /debug to see the current environment variables and http header values. 
